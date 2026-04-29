@@ -2,15 +2,17 @@
 
 import { useEffect, useRef } from "react";
 import { usePosts } from "@/lib/hooks/usePosts";
+import { Category } from "@/lib/types";
 import { PostCard } from "./PostCard";
 import { PostCardSkeleton } from "./PostCardSkeleton";
 import { Loader2, Inbox } from "lucide-react";
 
 interface FeedContainerProps {
   category: string;
+  categories: Category[];
 }
 
-export function FeedContainer({ category }: FeedContainerProps) {
+export function FeedContainer({ category, categories }: FeedContainerProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
     usePosts(category);
@@ -36,8 +38,8 @@ export function FeedContainer({ category }: FeedContainerProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {Array.from({ length: 5 }).map((_, i) => (
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, i) => (
           <PostCardSkeleton key={i} />
         ))}
       </div>
@@ -55,7 +57,7 @@ export function FeedContainer({ category }: FeedContainerProps) {
   if (posts.length === 0) {
     return (
       <div className="py-20 flex flex-col items-center gap-3 text-muted-foreground">
-        <Inbox className="w-10 h-10 opacity-40" />
+        <Inbox className="w-10 h-10 opacity-30" />
         <p className="text-sm">아직 게시글이 없어요. 첫 글을 작성해보세요!</p>
       </div>
     );
@@ -63,9 +65,9 @@ export function FeedContainer({ category }: FeedContainerProps) {
 
   return (
     <div>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
+          <PostCard key={post.id} post={post} categories={categories} />
         ))}
       </div>
 

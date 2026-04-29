@@ -67,7 +67,7 @@ export function FeedContainer({ category, categories }: FeedContainerProps) {
     <div>
       <div className="space-y-3">
         {posts.map((post) => (
-          <PostCard key={post.id} post={post} categories={categories} />
+          <PostCard key={post.id} post={post} />
         ))}
       </div>
 

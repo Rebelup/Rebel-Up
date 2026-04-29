@@ -62,3 +62,34 @@ export interface Follow {
   following_id: string;
   created_at: string;
 }
+
+export type RoutineType = "workout" | "diet";
+
+export interface RoutineItem {
+  id: string;
+  routine_id: string;
+  name: string;
+  detail: string | null;
+  order_index: number;
+  created_at: string;
+}
+
+export interface Routine {
+  id: string;
+  user_id: string;
+  title: string;
+  type: RoutineType;
+  days: number[]; // 0=월, 1=화, 2=수, 3=목, 4=금, 5=토, 6=일
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+  routine_items?: RoutineItem[];
+}
+
+export interface RoutineLog {
+  id: string;
+  user_id: string;
+  routine_id: string;
+  log_date: string;
+  created_at: string;
+}

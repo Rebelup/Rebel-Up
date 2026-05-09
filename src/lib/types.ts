@@ -93,3 +93,35 @@ export interface RoutineLog {
   log_date: string;
   created_at: string;
 }
+
+export type EventType = "sale" | "new_product" | "bundle" | "free_shipping" | "other";
+export type EventSource = "manual" | "scraped";
+
+export interface SupplementBrand {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  website_url: string | null;
+  events_url: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface SupplementEvent {
+  id: string;
+  brand_id: string;
+  title: string;
+  description: string | null;
+  event_url: string | null;
+  image_url: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  discount_rate: number | null;
+  event_type: EventType;
+  source: EventSource;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  supplement_brands?: Pick<SupplementBrand, "id" | "name" | "slug" | "logo_url">;
+}

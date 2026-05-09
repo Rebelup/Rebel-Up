@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, Users2, User } from "lucide-react";
+import { CalendarDays, Users2, User, Sparkles } from "lucide-react";
 import { useCurrentUser } from "@/lib/hooks/useCurrentUser";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,7 @@ export function BottomNav() {
   const items = [
     { href: "/routine", label: "루틴", icon: CalendarDays, match: (p: string) => p.startsWith("/routine") },
     { href: "/feed", label: "커뮤니티", icon: Users2, match: (p: string) => p.startsWith("/feed") || p.startsWith("/post") },
+    { href: "/events", label: "이벤트", icon: Sparkles, match: (p: string) => p.startsWith("/events") },
     { href: profileHref, label: "내정보", icon: User, match: (p: string) => p.startsWith("/profile") },
   ];
 

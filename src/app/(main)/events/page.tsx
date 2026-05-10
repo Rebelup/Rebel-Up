@@ -7,7 +7,7 @@ import { SupplementBrand, SupplementEvent, EventType } from "@/lib/types";
 import { EventCard } from "@/components/events/EventCard";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, Dumbbell } from "lucide-react";
 
 const EVENT_TYPES: { value: EventType | "all"; label: string }[] = [
   { value: "all", label: "전체" },
@@ -59,93 +59,98 @@ export default function EventsPage() {
   }, [events, selectedBrand, selectedType, search]);
 
   return (
-    <div className="max-w-lg mx-auto px-4 pt-4 pb-6">
-      <div className="mb-5">
-        <h1 className="text-xl font-bold">보충제 이벤트</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          인기 브랜드 할인·신제품 이벤트를 한눈에
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      {/* 헤더 */}
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border">
+        <div className="max-w-lg mx-auto px-4 h-14 flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
+            <Dumbbell className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-bold text-base">보충제 이벤트</span>
+        </div>
+      </header>
 
-      {/* 검색 */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="이벤트 검색..."
-          className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-      </div>
+      <div className="max-w-lg mx-auto px-4 pt-4 pb-8">
+        {/* 검색 */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="이벤트 검색..."
+            className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+        </div>
 
-      {/* 브랜드 필터 */}
-      <div className="flex gap-2 overflow-x-auto pb-1 mb-3 scrollbar-hide">
-        <button
-          onClick={() => setSelectedBrand("all")}
-          className={cn(
-            "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
-            selectedBrand === "all"
-              ? "bg-primary text-primary-foreground border-primary"
-              : "border-border text-muted-foreground hover:text-foreground"
-          )}
-        >
-          전체 브랜드
-        </button>
-        {brands.map((b) => (
+        {/* 브랜드 필터 */}
+        <div className="flex gap-2 overflow-x-auto pb-1 mb-3 scrollbar-hide">
           <button
-            key={b.id}
-            onClick={() => setSelectedBrand(selectedBrand === b.id ? "all" : b.id)}
+            onClick={() => setSelectedBrand("all")}
             className={cn(
               "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
-              selectedBrand === b.id
+              selectedBrand === "all"
                 ? "bg-primary text-primary-foreground border-primary"
                 : "border-border text-muted-foreground hover:text-foreground"
             )}
           >
-            {b.name}
+            전체 브랜드
           </button>
-        ))}
-      </div>
-
-      {/* 이벤트 타입 필터 */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-hide">
-        {EVENT_TYPES.map((t) => (
-          <button
-            key={t.value}
-            onClick={() => setSelectedType(t.value)}
-            className={cn(
-              "shrink-0 px-3 py-1 rounded-full text-[11px] font-medium transition-colors",
-              selectedType === t.value
-                ? "bg-foreground text-background"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* 이벤트 목록 */}
-      {loading ? (
-        <div className="grid gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-64 rounded-2xl" />
+          {brands.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => setSelectedBrand(selectedBrand === b.id ? "all" : b.id)}
+              className={cn(
+                "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                selectedBrand === b.id
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {b.name}
+            </button>
           ))}
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-2">
-          <SlidersHorizontal className="w-10 h-10 opacity-30" />
-          <p className="text-sm">
-            {events.length === 0 ? "등록된 이벤트가 없어요." : "조건에 맞는 이벤트가 없어요."}
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {filtered.map((event) => (
-            <EventCard key={event.id} event={event} />
+
+        {/* 이벤트 타입 필터 */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-hide">
+          {EVENT_TYPES.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => setSelectedType(t.value)}
+              className={cn(
+                "shrink-0 px-3 py-1 rounded-full text-[11px] font-medium transition-colors",
+                selectedType === t.value
+                  ? "bg-foreground text-background"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t.label}
+            </button>
           ))}
         </div>
-      )}
+
+        {/* 이벤트 목록 */}
+        {loading ? (
+          <div className="grid gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-64 rounded-2xl" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-2">
+            <SlidersHorizontal className="w-10 h-10 opacity-30" />
+            <p className="text-sm">
+              {events.length === 0 ? "등록된 이벤트가 없어요." : "조건에 맞는 이벤트가 없어요."}
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {filtered.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -35,62 +35,68 @@ export function EventCard({ event }: { event: SupplementEvent }) {
   const dday = getDDay(event.end_date);
   const gradient = BRAND_GRADIENTS[brand?.slug ?? ""] ?? "from-primary/70 to-primary";
   const initials = (brand?.name ?? "?").slice(0, 2).toUpperCase();
+  const hasDiscount = !!event.discount_rate && event.discount_rate >= 10;
 
   return (
     <Link href={`/events/${event.id}`} className="block group">
-      <div className="bg-white rounded-2xl flex items-center gap-3.5 px-4 h-[86px] shadow-sm border border-gray-100 group-hover:shadow-md group-hover:border-gray-200 transition-all duration-200">
+      <div className="bg-white rounded-2xl flex items-center gap-4 px-4 py-3.5 shadow-sm border border-gray-100 group-hover:shadow-md group-hover:border-gray-200 transition-all duration-200">
 
         {/* 좌측 이미지 */}
-        <div className="relative w-[58px] h-[58px] rounded-xl shrink-0 overflow-hidden">
+        <div className="relative w-[90px] h-[90px] rounded-xl shrink-0 overflow-hidden">
           {event.image_url ? (
             <Image
               src={event.image_url}
               alt={event.title}
               fill
               className="object-cover"
-              sizes="58px"
+              sizes="90px"
             />
           ) : (
-            <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center", gradient)}>
-              <span className="text-white text-sm font-bold tracking-tight">{initials}</span>
+            <div className={cn("w-full h-full bg-gradient-to-br flex flex-col items-center justify-center", gradient)}>
+              <span className="text-white text-xl font-black tracking-tight drop-shadow-sm">{initials}</span>
             </div>
           )}
         </div>
 
         {/* 우측 콘텐츠 */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between h-[52px] py-0.5">
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
           {/* 브랜드 + 타입 */}
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-medium text-muted-foreground truncate">
+            <span className="text-[11px] font-medium text-muted-foreground">
               {brand?.name ?? ""}
             </span>
+            <span className="text-muted-foreground/40 text-[10px]">·</span>
             <span className={cn("text-[11px] font-semibold shrink-0", type.color)}>
               {type.label}
             </span>
           </div>
 
-          {/* 제목 */}
-          <p className="text-[13.5px] font-semibold text-gray-900 line-clamp-1 leading-snug">
+          {/* 제목 - 2줄 */}
+          <p className="text-[14px] font-semibold text-gray-900 line-clamp-2 leading-snug">
             {event.title}
           </p>
 
           {/* 메타 */}
-          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
             {dday && (
               <span className={cn("font-bold", dday === "D-day" ? "text-rose-500" : "text-primary")}>
                 {dday}
               </span>
             )}
-            {dday && (event.discount_rate || event.is_international) && <span className="text-gray-300">·</span>}
             {event.discount_rate && (
-              <span className="font-medium text-gray-500">{event.discount_rate}% 할인</span>
+              <>
+                {dday && <span className="text-gray-300">·</span>}
+                <span className="font-medium text-gray-500">{event.discount_rate}% 할인</span>
+              </>
             )}
-            {event.discount_rate && event.is_international && <span className="text-gray-300">·</span>}
             {event.is_international && (
-              <span className="flex items-center gap-0.5 text-sky-500 font-medium">
-                <Globe className="w-2.5 h-2.5" />
-                해외배송
-              </span>
+              <>
+                {(dday || event.discount_rate) && <span className="text-gray-300">·</span>}
+                <span className="flex items-center gap-0.5 text-sky-500 font-medium">
+                  <Globe className="w-2.5 h-2.5" />
+                  해외배송
+                </span>
+              </>
             )}
             {!dday && !event.discount_rate && !event.is_international && (
               <span>상시 진행</span>
@@ -98,14 +104,28 @@ export function EventCard({ event }: { event: SupplementEvent }) {
           </div>
         </div>
 
-        {/* 할인율 강조 배지 (우측 끝) */}
-        {event.discount_rate && event.discount_rate >= 20 && (
-          <div className="shrink-0 flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-rose-50">
-            <span className="text-[11px] font-bold text-rose-500 leading-none">{event.discount_rate}%</span>
-            <span className="text-[9px] text-rose-400 leading-none mt-0.5">OFF</span>
+        {/* 할인율 배지 */}
+        {hasDiscount && (
+          <div className="shrink-0 flex flex-col items-center justify-center w-[46px] h-[46px] rounded-xl bg-rose-500 shadow-sm">
+            <span className="text-[14px] font-black text-white leading-none">{event.discount_rate}%</span>
+            <span className="text-[9px] text-rose-200 leading-none mt-0.5 font-medium">OFF</span>
           </div>
         )}
       </div>
     </Link>
+  );
+}
+
+export function EventCardSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl flex items-center gap-4 px-4 py-3.5 border border-gray-100">
+      <div className="w-[90px] h-[90px] rounded-xl bg-gray-100 animate-pulse shrink-0" />
+      <div className="flex-1 flex flex-col gap-2">
+        <div className="h-3 w-20 bg-gray-100 rounded-full animate-pulse" />
+        <div className="h-4 w-full bg-gray-100 rounded animate-pulse" />
+        <div className="h-4 w-4/5 bg-gray-100 rounded animate-pulse" />
+        <div className="h-3 w-24 bg-gray-100 rounded-full animate-pulse" />
+      </div>
+    </div>
   );
 }

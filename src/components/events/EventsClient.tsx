@@ -125,7 +125,7 @@ export function EventsSkeleton() {
   return (
     <div className="flex flex-col gap-3">
       {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-24 rounded-2xl" />
+        <Skeleton key={i} className="h-[122px] rounded-2xl" />
       ))}
     </div>
   );

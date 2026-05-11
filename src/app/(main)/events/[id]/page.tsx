@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { ArrowLeft, CalendarDays, ExternalLink, Globe, Tag } from "lucide-react";
 import { EventType } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const TYPE_MAP: Record<EventType, { label: string; color: string }> = {
   sale: { label: "할인", color: "bg-red-100 text-red-600" },

@@ -3,7 +3,7 @@ import { getBrands, getActiveEvents } from "@/lib/queries/events";
 import { EventsClient } from "@/components/events/EventsClient";
 import { Dumbbell } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function EventsPage() {
   const supabase = await createClient();

@@ -38,7 +38,7 @@ export function EventCard({ event }: { event: SupplementEvent }) {
 
   return (
     <Link href={`/events/${event.id}`} className="block group">
-      <div className="bg-white rounded-2xl flex items-center gap-4 px-4 py-3.5 shadow-sm border border-gray-100 group-hover:shadow-md group-hover:border-gray-200 transition-all duration-200">
+      <div className="bg-white rounded-2xl flex items-center gap-4 px-4 py-3.5 border border-gray-200 group-hover:border-gray-300 transition-colors duration-200">
 
         {/* 좌측 이미지 */}
         <div className="relative w-[90px] h-[90px] rounded-xl shrink-0 overflow-hidden">

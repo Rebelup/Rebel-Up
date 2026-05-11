@@ -35,7 +35,6 @@ export function EventCard({ event }: { event: SupplementEvent }) {
   const dday = getDDay(event.end_date);
   const gradient = BRAND_GRADIENTS[brand?.slug ?? ""] ?? "from-primary/70 to-primary";
   const initials = (brand?.name ?? "?").slice(0, 2).toUpperCase();
-  const hasDiscount = !!event.discount_rate && event.discount_rate >= 10;
 
   return (
     <Link href={`/events/${event.id}`} className="block group">
@@ -52,7 +51,7 @@ export function EventCard({ event }: { event: SupplementEvent }) {
               sizes="90px"
             />
           ) : (
-            <div className={cn("w-full h-full bg-gradient-to-br flex flex-col items-center justify-center", gradient)}>
+            <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center", gradient)}>
               <span className="text-white text-xl font-black tracking-tight drop-shadow-sm">{initials}</span>
             </div>
           )}
@@ -60,57 +59,50 @@ export function EventCard({ event }: { event: SupplementEvent }) {
 
         {/* 우측 콘텐츠 */}
         <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
-          {/* 브랜드 + 타입 */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-medium text-muted-foreground">
+
+          {/* 브랜드 + 타입 — 브랜드명이 길어도 한 줄 유지 */}
+          <div className="flex items-center gap-1 min-w-0">
+            <span className="text-[11px] font-medium text-muted-foreground truncate min-w-0">
               {brand?.name ?? ""}
             </span>
-            <span className="text-muted-foreground/40 text-[10px]">·</span>
+            <span className="text-muted-foreground/40 text-[10px] shrink-0">·</span>
             <span className={cn("text-[11px] font-semibold shrink-0", type.color)}>
               {type.label}
             </span>
           </div>
 
-          {/* 제목 - 2줄 */}
+          {/* 제목 — 2줄 */}
           <p className="text-[14px] font-semibold text-gray-900 line-clamp-2 leading-snug">
             {event.title}
           </p>
 
-          {/* 메타 */}
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          {/* 메타 — whitespace-nowrap으로 한 줄 강제 */}
+          <div className="flex items-center gap-1.5 text-[11px] whitespace-nowrap overflow-hidden">
             {dday && (
-              <span className={cn("font-bold", dday === "D-day" ? "text-rose-500" : "text-primary")}>
+              <span className={cn("font-bold shrink-0", dday === "D-day" ? "text-rose-500" : "text-primary")}>
                 {dday}
               </span>
             )}
             {event.discount_rate && (
               <>
-                {dday && <span className="text-gray-300">·</span>}
-                <span className="font-medium text-gray-500">{event.discount_rate}% 할인</span>
+                {dday && <span className="text-gray-300 shrink-0">·</span>}
+                <span className="font-bold text-rose-500 shrink-0">{event.discount_rate}% 할인</span>
               </>
             )}
             {event.is_international && (
               <>
-                {(dday || event.discount_rate) && <span className="text-gray-300">·</span>}
-                <span className="flex items-center gap-0.5 text-sky-500 font-medium">
-                  <Globe className="w-2.5 h-2.5" />
+                {(dday || event.discount_rate) && <span className="text-gray-300 shrink-0">·</span>}
+                <span className="flex items-center gap-0.5 text-sky-500 font-medium shrink-0">
+                  <Globe className="w-2.5 h-2.5 shrink-0" />
                   해외배송
                 </span>
               </>
             )}
             {!dday && !event.discount_rate && !event.is_international && (
-              <span>상시 진행</span>
+              <span className="text-muted-foreground">상시 진행</span>
             )}
           </div>
         </div>
-
-        {/* 할인율 배지 */}
-        {hasDiscount && (
-          <div className="shrink-0 flex flex-col items-center justify-center w-[46px] h-[46px] rounded-xl bg-rose-500 shadow-sm">
-            <span className="text-[14px] font-black text-white leading-none">{event.discount_rate}%</span>
-            <span className="text-[9px] text-rose-200 leading-none mt-0.5 font-medium">OFF</span>
-          </div>
-        )}
       </div>
     </Link>
   );

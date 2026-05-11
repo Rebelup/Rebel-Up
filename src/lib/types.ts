@@ -121,6 +121,7 @@ export interface SupplementEvent {
   event_type: EventType;
   source: EventSource;
   is_active: boolean;
+  is_international: boolean;
   created_at: string;
   updated_at: string;
   supplement_brands?: Pick<SupplementBrand, "id" | "name" | "slug" | "logo_url">;

@@ -56,14 +56,14 @@ export function EventsClient({ initialBrands, initialEvents }: Props) {
       </div>
 
       {/* 브랜드 필터 */}
-      <div className="flex gap-2 overflow-x-auto pb-1 mb-3 scrollbar-hide">
+      <div className="flex items-center gap-0.5 overflow-x-auto pb-1 mb-1 scrollbar-hide">
         <button
           onClick={() => setSelectedBrand("all")}
           className={cn(
-            "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+            "shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all duration-150",
             selectedBrand === "all"
-              ? "bg-primary text-primary-foreground border-primary"
-              : "border-border text-muted-foreground hover:text-foreground"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground"
           )}
         >
           전체
@@ -73,10 +73,10 @@ export function EventsClient({ initialBrands, initialEvents }: Props) {
             key={b.id}
             onClick={() => setSelectedBrand(selectedBrand === b.id ? "all" : b.id)}
             className={cn(
-              "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+              "shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all duration-150",
               selectedBrand === b.id
-                ? "bg-primary text-primary-foreground border-primary"
-                : "border-border text-muted-foreground hover:text-foreground"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             {b.name}
@@ -85,16 +85,16 @@ export function EventsClient({ initialBrands, initialEvents }: Props) {
       </div>
 
       {/* 타입 필터 */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+      <div className="flex items-center gap-0.5 overflow-x-auto pb-3 mb-3 scrollbar-hide">
         {EVENT_TYPES.map((t) => (
           <button
             key={t.value}
             onClick={() => setSelectedType(t.value)}
             className={cn(
-              "shrink-0 px-3 py-1 rounded-full text-[11px] font-medium transition-colors",
+              "shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all duration-150",
               selectedType === t.value
                 ? "bg-foreground text-background"
-                : "bg-muted text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             {t.label}

@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Tag, Users, ArrowLeft, Dumbbell, Sparkles } from "lucide-react";
+import { LayoutDashboard, Tag, Users, ArrowLeft, Dumbbell, Sparkles, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/admin", label: "대시보드", icon: LayoutDashboard, exact: true },
+  { href: "/admin/crawl", label: "크롤링 관리", icon: Globe, exact: false },
+  { href: "/admin/events", label: "이벤트 관리", icon: Sparkles, exact: false },
   { href: "/admin/categories", label: "카테고리 관리", icon: Tag, exact: false },
   { href: "/admin/users", label: "회원 관리", icon: Users, exact: false },
-  { href: "/admin/events", label: "이벤트 관리", icon: Sparkles, exact: false },
 ];
 
 export function AdminSidebar() {
@@ -54,11 +55,11 @@ export function AdminSidebar() {
 
         <div className="p-3 border-t border-border">
           <Link
-            href="/feed"
+            href="/events"
             className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            커뮤니티로 돌아가기
+            이벤트 페이지로
           </Link>
         </div>
       </aside>

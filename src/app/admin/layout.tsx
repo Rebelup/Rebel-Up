@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getProfileById } from "@/lib/queries/users";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
 export const dynamic = "force-dynamic";
@@ -12,9 +11,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
-
-  const profile = await getProfileById(supabase, user.id);
-  if (!profile || profile.role !== "admin") redirect("/feed");
 
   return (
     <div className="min-h-screen bg-[#F7F7F5]">

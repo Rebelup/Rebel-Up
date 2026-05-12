@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Eye, EyeOff, Link2, Loader2, RefreshCw, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, Link2, Loader2, RefreshCw, Check, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 const TYPE_OPTIONS: { value: EventType; label: string }[] = [
   { value: "sale", label: "할인" },
@@ -43,6 +44,22 @@ interface Props {
   initialBrands: SupplementBrand[];
 }
 
+function ImagePreview({ url, className }: { url: string; className?: string }) {
+  const [error, setError] = useState(false);
+  if (!url || error) {
+    return (
+      <div className={cn("bg-muted flex items-center justify-center rounded-xl", className)}>
+        <ImageIcon className="w-5 h-5 text-muted-foreground/40" />
+      </div>
+    );
+  }
+  return (
+    <div className={cn("relative rounded-xl overflow-hidden bg-muted", className)}>
+      <Image src={url} alt="" fill className="object-cover" sizes="200px" onError={() => setError(true)} />
+    </div>
+  );
+}
+
 export function EventManager({ initialEvents, initialBrands }: Props) {
   const [supabase] = useState(() => createClient());
   const [tab, setTab] = useState<"events" | "brands">("events");
@@ -69,7 +86,6 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
   const [crawlDialogOpen, setCrawlDialogOpen] = useState(false);
   const [selectedCrawl, setSelectedCrawl] = useState<Set<number>>(new Set());
 
-  // ── URL 가져오기 ─────────────────────────────────────────
   const handleScrapeUrl = async () => {
     if (!scrapeUrl.trim()) return;
     setScraping(true);
@@ -85,7 +101,6 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
     finally { setScraping(false); }
   };
 
-  // ── 크롤러 ────────────────────────────────────────────────
   const handleCrawl = async (brandId: string) => {
     setCrawlBrandId(brandId);
     setCrawling(true);
@@ -97,7 +112,7 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setCrawlResults(data.events ?? []);
-      if ((data.events ?? []).length === 0) toast.info("크롤링 결과가 없어요. 해당 사이트는 직접 입력이 필요해요.");
+      if ((data.events ?? []).length === 0) toast.info("크롤링 결과가 없어요.");
     } catch (err) { toast.error(err instanceof Error ? err.message : "크롤링 실패"); }
     finally { setCrawling(false); }
   };
@@ -111,7 +126,8 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
           brand_id: crawlBrandId, title: ev.title, description: ev.description,
           event_url: ev.event_url, image_url: ev.image_url, start_date: ev.start_date,
           end_date: ev.end_date, discount_rate: ev.discount_rate, event_type: "sale",
-          source: "scraped", is_active: true, is_international: brands.find((b) => b.id === crawlBrandId)?.slug !== "rexki" && brands.find((b) => b.id === crawlBrandId)?.slug !== "daily",
+          source: "scraped", is_active: true,
+          is_international: !["rexki", "daily", "samdae500"].includes(brands.find((b) => b.id === crawlBrandId)?.slug ?? ""),
         });
         setEvents((p) => [created, ...p]);
       }
@@ -120,7 +136,6 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
     } catch { toast.error("저장에 실패했습니다."); }
   };
 
-  // ── 이벤트 CRUD ───────────────────────────────────────────
   const openAdd = () => { setEditEv(null); setForm(EMPTY_FORM); setEventOpen(true); };
   const openEdit = (ev: SupplementEvent) => {
     setEditEv(ev);
@@ -171,7 +186,6 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
     catch { toast.error("삭제 실패"); }
   };
 
-  // ── 브랜드 CRUD ───────────────────────────────────────────
   const openAddBrand = () => { setEditBrand(null); setBForm({ name: "", slug: "", website_url: "", events_url: "", logo_url: "", is_active: true }); setBrandOpen(true); };
   const openEditBrand = (b: SupplementBrand) => { setEditBrand(b); setBForm({ name: b.name, slug: b.slug, website_url: b.website_url ?? "", events_url: b.events_url ?? "", logo_url: b.logo_url ?? "", is_active: b.is_active }); setBrandOpen(true); };
 
@@ -203,7 +217,6 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
         <p className="text-sm text-muted-foreground mt-1">보충제 브랜드 이벤트를 관리하세요.</p>
       </div>
 
-      {/* 탭 */}
       <div className="flex border-b border-border">
         {(["events", "brands"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} className={cn("px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors", tab === t ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground")}>
@@ -216,7 +229,6 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
       {tab === "events" && (
         <div className="space-y-4">
           <div className="flex gap-2 justify-end">
-            {/* URL 가져오기 */}
             <Dialog open={scrapeOpen} onOpenChange={setScrapeOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2"><Link2 className="w-4 h-4" />URL로 가져오기</Button>
@@ -237,7 +249,6 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
               </DialogContent>
             </Dialog>
 
-            {/* 직접 추가 */}
             <Dialog open={eventOpen} onOpenChange={setEventOpen}>
               <DialogTrigger asChild>
                 <Button onClick={openAdd} className="gap-2"><Plus className="w-4 h-4" />이벤트 추가</Button>
@@ -277,7 +288,23 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
                     <div className="space-y-1.5"><Label>종료일</Label><Input type="date" value={form.end_date} onChange={(e) => setForm((f) => ({ ...f, end_date: e.target.value }))} /></div>
                   </div>
                   <div className="space-y-1.5"><Label>이벤트 URL</Label><Input type="url" value={form.event_url} onChange={(e) => setForm((f) => ({ ...f, event_url: e.target.value }))} placeholder="https://..." /></div>
-                  <div className="space-y-1.5"><Label>이미지 URL</Label><Input type="url" value={form.image_url} onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))} placeholder="https://..." /></div>
+
+                  {/* 이미지 URL + 미리보기 */}
+                  <div className="space-y-2">
+                    <Label>썸네일 이미지 URL</Label>
+                    <Input
+                      type="url"
+                      value={form.image_url}
+                      onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))}
+                      placeholder="https://..."
+                    />
+                    {form.image_url && (
+                      <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-muted">
+                        <ImagePreview url={form.image_url} className="absolute inset-0 w-full h-full rounded-none" />
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex flex-col gap-2">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} className="w-4 h-4" />
@@ -301,18 +328,37 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
               <div className="py-16 text-center text-muted-foreground text-sm">이벤트가 없어요.</div>
             ) : (
               <table className="w-full text-sm">
-                <thead><tr className="border-b border-border bg-muted/30"><th className="text-left px-4 py-3 font-medium text-muted-foreground">이벤트</th><th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">기간</th><th className="text-left px-4 py-3 font-medium text-muted-foreground">상태</th><th className="text-right px-4 py-3 font-medium text-muted-foreground">관리</th></tr></thead>
+                <thead>
+                  <tr className="border-b border-border bg-muted/30">
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground w-16">이미지</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">이벤트</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">기간</th>
+                    <th className="text-left px-4 py-3 font-medium text-muted-foreground">상태</th>
+                    <th className="text-right px-4 py-3 font-medium text-muted-foreground">관리</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {events.map((ev) => (
                     <tr key={ev.id} className="border-b border-border last:border-0 hover:bg-muted/20">
-                      <td className="px-4 py-3"><p className="font-medium line-clamp-1">{ev.title}</p><p className="text-xs text-muted-foreground">{bName(ev.brand_id)}{ev.is_international && " · 해외"}</p></td>
+                      <td className="px-4 py-3">
+                        <ImagePreview url={ev.image_url ?? ""} className="w-12 h-12" />
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="font-medium line-clamp-1">{ev.title}</p>
+                        <p className="text-xs text-muted-foreground">{bName(ev.brand_id)}{ev.is_international && " · 해외"}</p>
+                      </td>
                       <td className="px-4 py-3 hidden sm:table-cell text-xs text-muted-foreground">{ev.end_date ? `~ ${new Date(ev.end_date).toLocaleDateString("ko-KR")}` : "기간 없음"}</td>
                       <td className="px-4 py-3">
                         <button onClick={() => toggleActive(ev)} className={cn("flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium", ev.is_active ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500")}>
                           {ev.is_active ? <><Eye className="w-3 h-3" />공개</> : <><EyeOff className="w-3 h-3" />숨김</>}
                         </button>
                       </td>
-                      <td className="px-4 py-3"><div className="flex items-center justify-end gap-1"><Button variant="ghost" size="icon" onClick={() => openEdit(ev)} className="h-8 w-8"><Pencil className="w-3.5 h-3.5" /></Button><Button variant="ghost" size="icon" onClick={() => handleDelete(ev)} className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button></div></td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(ev)} className="h-8 w-8"><Pencil className="w-3.5 h-3.5" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(ev)} className="h-8 w-8 text-destructive hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -335,7 +381,11 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
                   <div className="space-y-1.5"><Label>슬러그 *</Label><Input required value={bForm.slug} onChange={(e) => setBForm((f) => ({ ...f, slug: e.target.value.toLowerCase().replace(/\s+/g, "-") }))} /></div>
                   <div className="space-y-1.5"><Label>공식 사이트 URL</Label><Input type="url" value={bForm.website_url} onChange={(e) => setBForm((f) => ({ ...f, website_url: e.target.value }))} placeholder="https://..." /></div>
                   <div className="space-y-1.5"><Label>이벤트 URL (크롤링용)</Label><Input type="url" value={bForm.events_url} onChange={(e) => setBForm((f) => ({ ...f, events_url: e.target.value }))} placeholder="https://.../promotions" /></div>
-                  <div className="space-y-1.5"><Label>로고 URL</Label><Input type="url" value={bForm.logo_url} onChange={(e) => setBForm((f) => ({ ...f, logo_url: e.target.value }))} placeholder="https://..." /></div>
+                  <div className="space-y-1.5">
+                    <Label>로고 URL</Label>
+                    <Input type="url" value={bForm.logo_url} onChange={(e) => setBForm((f) => ({ ...f, logo_url: e.target.value }))} placeholder="https://..." />
+                    {bForm.logo_url && <ImagePreview url={bForm.logo_url} className="w-16 h-16 mt-1" />}
+                  </div>
                   <Button type="submit" className="w-full" disabled={bSaving}>{bSaving ? "저장 중..." : editBrand ? "수정" : "추가"}</Button>
                 </form>
               </DialogContent>
@@ -392,17 +442,22 @@ export function EventManager({ initialEvents, initialBrands }: Props) {
             <div className="space-y-3">
               <p className="text-xs text-muted-foreground">{crawlResults.length}개 발견. 저장할 항목을 선택하세요.</p>
               {crawlResults.map((ev, i) => (
-                <div key={i} onClick={() => setSelectedCrawl((s) => { const n = new Set(s); n.has(i) ? n.delete(i) : n.add(i); return n; })} className={cn("p-3 rounded-xl border cursor-pointer transition-colors", selectedCrawl.has(i) ? "border-primary bg-primary/5" : "border-border hover:bg-muted/30")}>
-                  <div className="flex items-start gap-2">
-                    <div className={cn("mt-0.5 w-4 h-4 rounded border shrink-0 flex items-center justify-center", selectedCrawl.has(i) ? "bg-primary border-primary" : "border-border")}>
-                      {selectedCrawl.has(i) && <Check className="w-2.5 h-2.5 text-white" />}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium line-clamp-2">{ev.title}</p>
-                      {ev.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{ev.description}</p>}
-                      <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
-                        {ev.discount_rate && <span className="text-orange-600 font-medium">{ev.discount_rate}% OFF</span>}
-                        {ev.end_date && <span>~ {ev.end_date}</span>}
+                <div key={i} onClick={() => setSelectedCrawl((s) => { const n = new Set(s); n.has(i) ? n.delete(i) : n.add(i); return n; })} className={cn("p-3 rounded-xl border cursor-pointer transition-colors flex gap-3", selectedCrawl.has(i) ? "border-primary bg-primary/5" : "border-border hover:bg-muted/30")}>
+                  {ev.image_url && (
+                    <ImagePreview url={ev.image_url} className="w-14 h-14 shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start gap-2">
+                      <div className={cn("mt-0.5 w-4 h-4 rounded border shrink-0 flex items-center justify-center", selectedCrawl.has(i) ? "bg-primary border-primary" : "border-border")}>
+                        {selectedCrawl.has(i) && <Check className="w-2.5 h-2.5 text-white" />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium line-clamp-2">{ev.title}</p>
+                        {ev.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{ev.description}</p>}
+                        <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
+                          {ev.discount_rate && <span className="text-rose-500 font-bold">▼{ev.discount_rate}%</span>}
+                          {ev.end_date && <span>~ {ev.end_date}</span>}
+                        </div>
                       </div>
                     </div>
                   </div>

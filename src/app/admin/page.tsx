@@ -4,11 +4,13 @@ import { getCategories } from "@/lib/queries/categories";
 import { Users, FileText, Tag, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminDashboard() {
   const supabase = await createClient();
   const [counts, categories] = await Promise.all([
-    getTotalCounts(supabase),
-    getCategories(supabase),
+    getTotalCounts(supabase).catch(() => ({ users: 0, posts: 0 })),
+    getCategories(supabase).catch(() => []),
   ]);
 
   const stats = [

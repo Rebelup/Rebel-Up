@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 export default async function AdminEventsPage() {
   const supabase = await createClient();
   const [events, brands] = await Promise.all([
-    getAllEvents(supabase),
-    getAllBrands(supabase),
+    getAllEvents(supabase).catch(() => []),
+    getAllBrands(supabase).catch(() => []),
   ]);
 
   return <EventManager initialEvents={events} initialBrands={brands} />;

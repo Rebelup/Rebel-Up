@@ -6,6 +6,6 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminCrawlPage() {
   const supabase = await createClient();
-  const brands = await getAllBrands(supabase);
+  const brands = await getAllBrands(supabase).catch(() => []);
   return <CrawlManager initialBrands={brands} />;
 }

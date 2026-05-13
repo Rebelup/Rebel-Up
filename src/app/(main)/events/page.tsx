@@ -8,8 +8,8 @@ export const revalidate = 60;
 export default async function EventsPage() {
   const supabase = await createClient();
   const [brands, events] = await Promise.all([
-    getBrands(supabase),
-    getActiveEvents(supabase),
+    getBrands(supabase).catch(() => []),
+    getActiveEvents(supabase).catch(() => []),
   ]);
 
   return (

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getBrands, getActiveEvents } from "@/lib/queries/events";
+import { getActiveEvents, getEventCategories } from "@/lib/queries/events";
 import { EventsClient } from "@/components/events/EventsClient";
 import { Dumbbell } from "lucide-react";
 
@@ -7,9 +7,9 @@ export const revalidate = 60;
 
 export default async function EventsPage() {
   const supabase = await createClient();
-  const [brands, events] = await Promise.all([
-    getBrands(supabase).catch(() => []),
+  const [events, categories] = await Promise.all([
     getActiveEvents(supabase).catch(() => []),
+    getEventCategories(supabase).catch(() => []),
   ]);
 
   return (
@@ -25,7 +25,7 @@ export default async function EventsPage() {
       </header>
 
       <div className="max-w-lg mx-auto px-4 pt-4 pb-8">
-        <EventsClient initialBrands={brands} initialEvents={events} />
+        <EventsClient initialEvents={events} initialCategories={categories} />
       </div>
     </div>
   );

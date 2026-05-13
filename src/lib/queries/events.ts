@@ -1,7 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { SupplementBrand, SupplementEvent } from "@/lib/types";
 
-const EVENT_SELECT = "*, supplement_brands(id, name, slug, logo_url)";
+const EVENT_SELECT = "*, supplement_brands(id, name, slug, logo_url), event_categories(id, name, slug, parent_id)";
 const TODAY = () => new Date().toISOString().split("T")[0];
 
 export async function getBrands(supabase: SupabaseClient): Promise<SupplementBrand[]> {
@@ -117,4 +117,13 @@ export async function updateBrand(
 export async function deleteBrand(supabase: SupabaseClient, id: string): Promise<void> {
   const { error } = await supabase.from("supplement_brands").delete().eq("id", id);
   if (error) throw error;
+}
+
+export async function getEventCategories(supabase: SupabaseClient): Promise<import("@/lib/types").EventCategory[]> {
+  const { data, error } = await supabase
+    .from("event_categories")
+    .select("*")
+    .order("display_order");
+  if (error) throw error;
+  return (data ?? []) as import("@/lib/types").EventCategory[];
 }

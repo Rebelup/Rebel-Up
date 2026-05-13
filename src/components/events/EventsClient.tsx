@@ -1,35 +1,43 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { SupplementBrand, SupplementEvent, EventType } from "@/lib/types";
+import { SupplementEvent, EventCategory } from "@/lib/types";
 import { EventCard } from "@/components/events/EventCard";
 import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Search, SlidersHorizontal } from "lucide-react";
 
-const EVENT_TYPES: { value: EventType | "all"; label: string }[] = [
-  { value: "all", label: "전체" },
-  { value: "sale", label: "할인" },
-  { value: "new_product", label: "신제품" },
-  { value: "bundle", label: "묶음" },
-  { value: "free_shipping", label: "무료배송" },
-  { value: "other", label: "기타" },
-];
-
 interface Props {
-  initialBrands: SupplementBrand[];
   initialEvents: SupplementEvent[];
+  initialCategories: EventCategory[];
 }
 
-export function EventsClient({ initialBrands, initialEvents }: Props) {
-  const [selectedBrand, setSelectedBrand] = useState<string>("all");
-  const [selectedType, setSelectedType] = useState<EventType | "all">("all");
+export function EventsClient({ initialEvents, initialCategories }: Props) {
+  const [selectedParent, setSelectedParent] = useState<string | null>(null);
+  const [selectedChild, setSelectedChild] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+
+  const parents = useMemo(
+    () => initialCategories.filter((c) => !c.parent_id && c.is_active).sort((a, b) => a.display_order - b.display_order),
+    [initialCategories]
+  );
+
+  const children = useMemo(
+    () => selectedParent
+      ? initialCategories.filter((c) => c.parent_id === selectedParent && c.is_active).sort((a, b) => a.display_order - b.display_order)
+      : [],
+    [initialCategories, selectedParent]
+  );
 
   const filtered = useMemo(() => {
     return initialEvents.filter((e) => {
-      if (selectedBrand !== "all" && e.brand_id !== selectedBrand) return false;
-      if (selectedType !== "all" && e.event_type !== selectedType) return false;
+      if (selectedChild) {
+        if (e.category_id !== selectedChild) return false;
+      } else if (selectedParent) {
+        const parentChildIds = initialCategories
+          .filter((c) => c.parent_id === selectedParent)
+          .map((c) => c.id);
+        if (e.category_id !== selectedParent && !parentChildIds.includes(e.category_id ?? "")) return false;
+      }
       if (search.trim()) {
         const q = search.toLowerCase();
         return (
@@ -40,12 +48,19 @@ export function EventsClient({ initialBrands, initialEvents }: Props) {
       }
       return true;
     });
-  }, [initialEvents, selectedBrand, selectedType, search]);
+  }, [initialEvents, initialCategories, selectedParent, selectedChild, search]);
+
+  const selectParent = (id: string | null) => {
+    setSelectedParent(id);
+    setSelectedChild(null);
+  };
+
+  const hasCategories = parents.length > 0;
 
   return (
     <>
       {/* 검색 */}
-      <div className="relative mb-4">
+      <div className="relative mb-3">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
         <input
           value={search}
@@ -55,52 +70,69 @@ export function EventsClient({ initialBrands, initialEvents }: Props) {
         />
       </div>
 
-      {/* 브랜드 필터 */}
-      <div className="flex items-center gap-0.5 overflow-x-auto pb-1 mb-1 scrollbar-hide">
-        <button
-          onClick={() => setSelectedBrand("all")}
-          className={cn(
-            "shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all duration-150",
-            selectedBrand === "all"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          전체
-        </button>
-        {initialBrands.map((b) => (
+      {/* 1차 카테고리 */}
+      {hasCategories && (
+        <div className="flex items-center gap-0.5 overflow-x-auto pb-1 mb-1 scrollbar-hide">
           <button
-            key={b.id}
-            onClick={() => setSelectedBrand(selectedBrand === b.id ? "all" : b.id)}
+            onClick={() => selectParent(null)}
             className={cn(
               "shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all duration-150",
-              selectedBrand === b.id
+              selectedParent === null
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            {b.name}
+            전체
           </button>
-        ))}
-      </div>
+          {parents.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => selectParent(selectedParent === p.id ? null : p.id)}
+              className={cn(
+                "shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all duration-150",
+                selectedParent === p.id
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* 타입 필터 */}
-      <div className="flex items-center gap-0.5 overflow-x-auto pb-3 mb-3 scrollbar-hide">
-        {EVENT_TYPES.map((t) => (
+      {/* 2차 카테고리 */}
+      {children.length > 0 && (
+        <div className="flex items-center gap-0.5 overflow-x-auto pb-3 mb-1 scrollbar-hide">
           <button
-            key={t.value}
-            onClick={() => setSelectedType(t.value)}
+            onClick={() => setSelectedChild(null)}
             className={cn(
-              "shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all duration-150",
-              selectedType === t.value
+              "shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all duration-150",
+              selectedChild === null
                 ? "bg-foreground text-background"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            {t.label}
+            전체
           </button>
-        ))}
-      </div>
+          {children.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setSelectedChild(selectedChild === c.id ? null : c.id)}
+              className={cn(
+                "shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all duration-150",
+                selectedChild === c.id
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!hasCategories && <div className="mb-3" />}
 
       {/* 목록 */}
       {filtered.length === 0 ? (
@@ -125,7 +157,18 @@ export function EventsSkeleton() {
   return (
     <div className="flex flex-col gap-3">
       {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-[122px] rounded-2xl" />
+        <div key={i} className="bg-white rounded-2xl flex items-center gap-4 px-4 py-3.5 border border-gray-200">
+          <div className="w-[90px] h-[90px] rounded-xl bg-gray-100 animate-pulse shrink-0" />
+          <div className="flex-1 flex flex-col gap-2">
+            <div className="h-3 w-20 bg-gray-100 rounded-full animate-pulse" />
+            <div className="h-4 w-full bg-gray-100 rounded animate-pulse" />
+            <div className="h-4 w-4/5 bg-gray-100 rounded animate-pulse" />
+            <div className="flex gap-1.5">
+              <div className="h-5 w-16 bg-gray-100 rounded-full animate-pulse" />
+              <div className="h-5 w-12 bg-gray-100 rounded-full animate-pulse" />
+            </div>
+          </div>
+        </div>
       ))}
     </div>
   );

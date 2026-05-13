@@ -1,6 +1,9 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { SupplementBrand, SupplementEvent } from "@/lib/types";
 
+const EVENT_SELECT = "*, supplement_brands(id, name, slug, logo_url), event_categories(id, name, slug, parent_id)";
+const TODAY = () => new Date().toISOString().split("T")[0];
+
 export async function getBrands(supabase: SupabaseClient): Promise<SupplementBrand[]> {
   const { data, error } = await supabase
     .from("supplement_brands")
@@ -22,26 +25,41 @@ export async function getAllBrands(supabase: SupabaseClient): Promise<Supplement
 
 export async function getActiveEvents(
   supabase: SupabaseClient,
-  brandId?: string
+  brandId?: string,
+  excludeId?: string
 ): Promise<SupplementEvent[]> {
   let query = supabase
     .from("supplement_events")
-    .select("*, supplement_brands(id, name, slug, logo_url)")
+    .select(EVENT_SELECT)
     .eq("is_active", true)
-    .or("end_date.is.null,end_date.gte." + new Date().toISOString().split("T")[0])
+    .or(`end_date.is.null,end_date.gte.${TODAY()}`)
     .order("created_at", { ascending: false });
 
   if (brandId) query = query.eq("brand_id", brandId);
+  if (excludeId) query = query.neq("id", excludeId);
 
   const { data, error } = await query;
   if (error) throw error;
   return (data as SupplementEvent[]) ?? [];
 }
 
+export async function getEventById(
+  supabase: SupabaseClient,
+  id: string
+): Promise<SupplementEvent | null> {
+  const { data, error } = await supabase
+    .from("supplement_events")
+    .select(EVENT_SELECT)
+    .eq("id", id)
+    .single();
+  if (error) return null;
+  return data as SupplementEvent;
+}
+
 export async function getAllEvents(supabase: SupabaseClient): Promise<SupplementEvent[]> {
   const { data, error } = await supabase
     .from("supplement_events")
-    .select("*, supplement_brands(id, name, slug, logo_url)")
+    .select(EVENT_SELECT)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data as SupplementEvent[]) ?? [];
@@ -54,7 +72,7 @@ export async function createEvent(
   const { data, error } = await supabase
     .from("supplement_events")
     .insert(payload)
-    .select("*, supplement_brands(id, name, slug, logo_url)")
+    .select(EVENT_SELECT)
     .single();
   if (error) throw error;
   return data as SupplementEvent;
@@ -99,4 +117,13 @@ export async function updateBrand(
 export async function deleteBrand(supabase: SupabaseClient, id: string): Promise<void> {
   const { error } = await supabase.from("supplement_brands").delete().eq("id", id);
   if (error) throw error;
+}
+
+export async function getEventCategories(supabase: SupabaseClient): Promise<import("@/lib/types").EventCategory[]> {
+  const { data, error } = await supabase
+    .from("event_categories")
+    .select("*")
+    .order("display_order");
+  if (error) throw error;
+  return (data ?? []) as import("@/lib/types").EventCategory[];
 }

@@ -1,120 +1,127 @@
-"use client";
-
+import Link from "next/link";
+import Image from "next/image";
 import { SupplementEvent, EventType } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { CalendarDays, ExternalLink, Tag } from "lucide-react";
+import { Globe } from "lucide-react";
 
-const EVENT_TYPE_MAP: Record<EventType, { label: string; color: string }> = {
-  sale: { label: "할인", color: "bg-red-100 text-red-600" },
-  new_product: { label: "신제품", color: "bg-blue-100 text-blue-600" },
-  bundle: { label: "묶음", color: "bg-purple-100 text-purple-600" },
-  free_shipping: { label: "무료배송", color: "bg-green-100 text-green-600" },
-  other: { label: "기타", color: "bg-gray-100 text-gray-500" },
+const TYPE_MAP: Record<EventType, { label: string; color: string }> = {
+  sale: { label: "할인", color: "text-rose-500" },
+  new_product: { label: "신제품", color: "text-blue-500" },
+  bundle: { label: "묶음구성", color: "text-violet-500" },
+  free_shipping: { label: "무료배송", color: "text-emerald-500" },
+  other: { label: "이벤트", color: "text-amber-500" },
 };
 
-function formatDate(date: string | null) {
-  if (!date) return null;
-  return new Date(date).toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
+const BRAND_GRADIENTS: Record<string, string> = {
+  on: "from-yellow-400 to-orange-400",
+  gnc: "from-blue-500 to-blue-700",
+  muscletech: "from-red-500 to-red-700",
+  musclepharm: "from-gray-700 to-gray-900",
+  rexki: "from-sky-400 to-cyan-500",
+  daily: "from-teal-400 to-emerald-500",
+};
+
+function getDaysLeft(end: string | null): string | null {
+  if (!end) return null;
+  const days = Math.ceil((new Date(end).getTime() - Date.now()) / 86400000);
+  if (days < 0) return null;
+  if (days === 0) return "오늘 마감";
+  return `${days}일 남음`;
 }
 
-function isExpiringSoon(endDate: string | null) {
-  if (!endDate) return false;
-  const diff = new Date(endDate).getTime() - Date.now();
-  return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
-}
-
-interface EventCardProps {
-  event: SupplementEvent;
-}
-
-export function EventCard({ event }: EventCardProps) {
-  const typeInfo = EVENT_TYPE_MAP[event.event_type];
-  const brandName = event.supplement_brands?.name ?? "Unknown";
-  const expiring = isExpiringSoon(event.end_date);
+export function EventCard({ event }: { event: SupplementEvent }) {
+  const type = TYPE_MAP[event.event_type];
+  const brand = event.supplement_brands;
+  const daysLeft = getDaysLeft(event.end_date);
+  const gradient = BRAND_GRADIENTS[brand?.slug ?? ""] ?? "from-primary/70 to-primary";
+  const initials = (brand?.name ?? "?").slice(0, 2).toUpperCase();
 
   return (
-    <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col">
-      {/* Image */}
-      {event.image_url ? (
-        <div className="aspect-[16/9] overflow-hidden bg-muted">
-          <img
-            src={event.image_url}
-            alt={event.title}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      ) : (
-        <div className="aspect-[16/9] bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-          <Tag className="w-10 h-10 text-primary/30" />
-        </div>
-      )}
+    <Link href={`/events/${event.id}`} className="block group">
+      <div className="bg-white rounded-2xl flex items-center gap-4 px-4 py-3.5 border border-gray-200 group-hover:border-gray-300 transition-colors duration-200">
 
-      {/* Body */}
-      <div className="p-4 flex flex-col gap-2 flex-1">
-        {/* Brand + type badges */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-semibold text-muted-foreground">{brandName}</span>
-          <span
-            className={cn(
-              "text-[11px] font-medium px-2 py-0.5 rounded-full",
-              typeInfo.color
-            )}
-          >
-            {typeInfo.label}
-          </span>
-          {event.discount_rate && (
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">
-              {event.discount_rate}% OFF
-            </span>
-          )}
-          {expiring && (
-            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
-              마감 임박
-            </span>
-          )}
-        </div>
-
-        {/* Title */}
-        <h3 className="font-semibold text-sm leading-snug line-clamp-2">{event.title}</h3>
-
-        {/* Description */}
-        {event.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-            {event.description}
-          </p>
-        )}
-
-        {/* Date */}
-        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-auto pt-2">
-          <CalendarDays className="w-3.5 h-3.5 shrink-0" />
-          {event.start_date && event.end_date ? (
-            <span>
-              {formatDate(event.start_date)} ~ {formatDate(event.end_date)}
-            </span>
-          ) : event.end_date ? (
-            <span>~ {formatDate(event.end_date)} 까지</span>
-          ) : event.start_date ? (
-            <span>{formatDate(event.start_date)} 부터</span>
+        {/* 좌측 이미지 */}
+        <div className="relative w-[90px] h-[90px] rounded-xl shrink-0 overflow-hidden">
+          {event.image_url ? (
+            <Image
+              src={event.image_url}
+              alt={event.title}
+              fill
+              className="object-cover"
+              sizes="90px"
+            />
           ) : (
-            <span>기간 미정</span>
+            <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center", gradient)}>
+              <span className="text-white text-xl font-black tracking-tight drop-shadow-sm">{initials}</span>
+            </div>
           )}
+        </div>
+
+        {/* 우측 콘텐츠 */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
+
+          {/* 브랜드 + 타입 */}
+          <div className="flex items-center gap-1 min-w-0">
+            <span className="text-[11px] font-medium text-muted-foreground truncate min-w-0">
+              {brand?.name ?? ""}
+            </span>
+            <span className="text-muted-foreground/40 text-[10px] shrink-0">·</span>
+            <span className={cn("text-[11px] font-semibold shrink-0", type.color)}>
+              {type.label}
+            </span>
+          </div>
+
+          {/* 제목 — 2줄 */}
+          <p className="text-[14px] font-semibold text-gray-900 line-clamp-2 leading-snug">
+            {event.title}
+          </p>
+
+          {/* 메타 칩 행 */}
+          <div className="flex items-center gap-1.5 whitespace-nowrap overflow-hidden">
+            {daysLeft && (
+              <span className={cn(
+                "shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full",
+                daysLeft === "오늘 마감"
+                  ? "bg-rose-50 text-rose-500"
+                  : "bg-primary/10 text-primary"
+              )}>
+                {daysLeft}
+              </span>
+            )}
+            {event.discount_rate && (
+              <span className="shrink-0 inline-flex items-center gap-0.5 bg-rose-50 text-rose-500 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                ▼{event.discount_rate}%
+              </span>
+            )}
+            {event.is_international && (
+              <span className="shrink-0 inline-flex items-center gap-0.5 bg-sky-50 text-sky-500 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                <Globe className="w-2.5 h-2.5 shrink-0" />
+                해외배송
+              </span>
+            )}
+            {!daysLeft && !event.discount_rate && !event.is_international && (
+              <span className="text-[10px] text-muted-foreground px-2 py-0.5">상시 진행</span>
+            )}
+          </div>
         </div>
       </div>
+    </Link>
+  );
+}
 
-      {/* Footer */}
-      {event.event_url && (
-        <div className="px-4 pb-4">
-          <a
-            href={event.event_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
-          >
-            이벤트 보러가기
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+export function EventCardSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl flex items-center gap-4 px-4 py-3.5 border border-gray-200">
+      <div className="w-[90px] h-[90px] rounded-xl bg-gray-100 animate-pulse shrink-0" />
+      <div className="flex-1 flex flex-col gap-2">
+        <div className="h-3 w-20 bg-gray-100 rounded-full animate-pulse" />
+        <div className="h-4 w-full bg-gray-100 rounded animate-pulse" />
+        <div className="h-4 w-4/5 bg-gray-100 rounded animate-pulse" />
+        <div className="flex gap-1.5">
+          <div className="h-5 w-16 bg-gray-100 rounded-full animate-pulse" />
+          <div className="h-5 w-12 bg-gray-100 rounded-full animate-pulse" />
         </div>
-      )}
+      </div>
     </div>
   );
 }

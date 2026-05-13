@@ -94,6 +94,17 @@ export interface RoutineLog {
   created_at: string;
 }
 
+export interface EventCategory {
+  id: string;
+  name: string;
+  slug: string;
+  parent_id: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  children?: EventCategory[];
+}
+
 export type EventType = "sale" | "new_product" | "bundle" | "free_shipping" | "other";
 export type EventSource = "manual" | "scraped";
 
@@ -121,7 +132,10 @@ export interface SupplementEvent {
   event_type: EventType;
   source: EventSource;
   is_active: boolean;
+  is_international: boolean;
   created_at: string;
   updated_at: string;
+  category_id?: string | null;
   supplement_brands?: Pick<SupplementBrand, "id" | "name" | "slug" | "logo_url">;
+  event_categories?: Pick<EventCategory, "id" | "name" | "slug" | "parent_id"> | null;
 }

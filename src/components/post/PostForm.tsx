@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ImageUploader } from "./ImageUploader";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 
 export function PostForm({ userId }: { userId: string }) {
   const router = useRouter();
@@ -53,6 +54,10 @@ export function PostForm({ userId }: { userId: string }) {
       });
 
       await queryClient.invalidateQueries({ queryKey: ["posts"] });
+      posthog.capture("post_created", {
+        category,
+        image_count: imageUrls.length,
+      });
       toast.success("게시글이 등록됐어요!");
       router.push(`/post/${post.id}`);
     } catch {

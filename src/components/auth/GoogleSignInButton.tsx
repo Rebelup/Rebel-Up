@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import posthog from "posthog-js";
 
 export function GoogleSignInButton() {
   const [loading, setLoading] = useState(false);
 
   const handleSignIn = async () => {
     setLoading(true);
+    posthog.capture("google_sign_in_started");
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",

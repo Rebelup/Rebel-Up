@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getLikeStatus, addLike, removeLike } from "@/lib/queries/likes";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 
 interface LikeButtonProps {
   postId: string;
@@ -34,8 +35,10 @@ export function LikeButton({ postId, initialCount, userId }: LikeButtonProps) {
     try {
       if (prev) {
         await removeLike(supabase, postId, userId);
+        posthog.capture("post_unliked", { post_id: postId });
       } else {
         await addLike(supabase, postId, userId);
+        posthog.capture("post_liked", { post_id: postId });
       }
     } catch {
       setLiked(prev);

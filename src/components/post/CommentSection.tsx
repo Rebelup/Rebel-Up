@@ -10,6 +10,7 @@ import { Comment } from "@/lib/types";
 import { formatRelativeTime } from "@/lib/utils";
 import { Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 
 interface CommentSectionProps {
   postId: string;
@@ -43,6 +44,7 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
       });
       setComments((prev) => [...prev, comment]);
       setNewComment("");
+      posthog.capture("comment_created", { post_id: postId });
     } catch {
       toast.error("댓글 등록에 실패했습니다.");
     } finally {

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Plus, Trash2, Dumbbell, Utensils, Loader2 } from "lucide-react";
+import posthog from "posthog-js";
 
 const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
 
@@ -72,6 +73,11 @@ export function RoutineForm({ routine, userId }: RoutineFormProps) {
           days,
           items: validItems.map((it) => ({ name: it.name.trim(), detail: it.detail.trim() || undefined })),
         });
+        posthog.capture("routine_updated", {
+          routine_type: type,
+          scheduled_day_count: days.length,
+          item_count: validItems.length,
+        });
         toast.success("루틴이 수정됐어요.");
       } else {
         await createRoutine(supabase, userId, {
@@ -79,6 +85,11 @@ export function RoutineForm({ routine, userId }: RoutineFormProps) {
           type,
           days,
           items: validItems.map((it) => ({ name: it.name.trim(), detail: it.detail.trim() || undefined })),
+        });
+        posthog.capture("routine_created", {
+          routine_type: type,
+          scheduled_day_count: days.length,
+          item_count: validItems.length,
         });
         toast.success("루틴이 추가됐어요.");
       }

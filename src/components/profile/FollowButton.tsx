@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getFollowStatus, followUser, unfollowUser } from "@/lib/queries/follows";
 import { toast } from "sonner";
 import { UserPlus, UserMinus } from "lucide-react";
+import posthog from "posthog-js";
 
 interface FollowButtonProps {
   followerId: string;
@@ -33,8 +34,10 @@ export function FollowButton({ followerId, followingId, onFollowChange }: Follow
     try {
       if (prev) {
         await unfollowUser(supabase, followerId, followingId);
+        posthog.capture("user_unfollowed", { followed_user_id: followingId });
       } else {
         await followUser(supabase, followerId, followingId);
+        posthog.capture("user_followed", { followed_user_id: followingId });
       }
     } catch {
       setFollowing(prev);

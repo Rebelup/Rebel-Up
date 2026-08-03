@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { updateProfile, checkUsernameAvailable } from "@/lib/queries/users";
 import { Dumbbell, Camera, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -95,6 +96,10 @@ export default function OnboardingPage() {
         onboarding_complete: true,
       });
 
+      posthog.capture("onboarding_completed", {
+        avatar_uploaded: Boolean(avatarFile),
+        bio_added: Boolean(bio.trim()),
+      });
       router.push("/feed");
     } catch {
       toast.error("프로필 저장에 실패했습니다. 다시 시도해주세요.");

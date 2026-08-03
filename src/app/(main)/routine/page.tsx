@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Flame, Plus, Smile } from "lucide-react";
 import Link from "next/link";
+import posthog from "posthog-js";
 
 function toDateStr(d: Date) {
   return d.toISOString().split("T")[0];
@@ -125,6 +126,11 @@ export default function RoutinePage() {
       setLogs((prev) => prev.filter((l) => l.routine_id !== routine.id));
       try {
         await unlogRoutineComplete(supabase, userId, routine.id, dateStr);
+        posthog.capture("routine_completion_toggled", {
+          routine_id: routine.id,
+          completed: false,
+          routine_type: routine.type,
+        });
         setStreak(await getStreak(supabase, userId));
       } catch {
         toast.error("변경에 실패했습니다.");
@@ -137,6 +143,11 @@ export default function RoutinePage() {
       ]);
       try {
         await logRoutineComplete(supabase, userId, routine.id, dateStr);
+        posthog.capture("routine_completion_toggled", {
+          routine_id: routine.id,
+          completed: true,
+          routine_type: routine.type,
+        });
         setStreak(await getStreak(supabase, userId));
       } catch {
         toast.error("변경에 실패했습니다.");
